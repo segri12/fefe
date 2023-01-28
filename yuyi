@@ -1,0 +1,220 @@
+            string namePlayer;  
+            string moveToTable = "1";  
+            string exitCommand = "2"; 
+            string userCommand;  
+            bool isChosing = true;  
+
+            Console.WriteLine("Добро пожаловать KAZINOFORTUNES! Введите своё имя:");
+
+            namePlayer = Console.ReadLine();
+
+            Console.WriteLine($"Чтобы пройти к столу и начать играть, введите {moveToTable}");
+            Console.WriteLine($"Чтобы уйти, введите {exitCommand}");
+
+            userCommand = Console.ReadLine();
+            Console.Clear();
+
+            while (isChosing)
+            {
+                if (userCommand == moveToTable)
+                {
+                    Deck cardDeck = new Deck();
+                    Player player = new Player(namePlayer);
+                    Table table = new Table(cardDeck, player);
+
+                    table.Play();
+                }
+                else if (userCommand != exitCommand)
+                {
+                    isChosing = false;                   
+                }
+                else
+                {
+                    Console.WriteLine("Неверная команда.");
+                    Console.ReadKey();
+                    Console.Clear();
+                }
+            }
+        }
+    }
+
+    class Table
+    {
+        private Deck _deck;
+        private Card _card;
+        private Player _player;
+        private string _userCommand;
+        private bool _isPlaying;
+        readonly private string _commandToShowDeck = "1";
+        readonly private string _commandToTakeCard = "2";
+        readonly private string _commandToShowPlayerCards = "3";
+        readonly private string _exitCommand = "4";
+
+        public Table(Deck deck, Player player)
+        {
+            _deck = deck;
+            _player = player;
+        }
+
+        public void Play()
+        {
+            _isPlaying = true;
+
+            _deck.Create();
+            _deck.Shuffle();
+
+            while (_isPlaying)
+            {
+                Console.WriteLine("Добро пожаловать за игровой стол!");
+                Console.WriteLine($"Введите {_commandToShowDeck}, чтобы показать колоду;");
+                Console.WriteLine($"Введите {_commandToTakeCard}, чтобы взять карту из колоды");
+                Console.WriteLine($"Введите {_commandToShowPlayerCards}, чтобы показать карты игрока {_player.Name}");
+                Console.WriteLine($"Введите {_exitCommand}, чтобы выйти.");
+                _userCommand = Console.ReadLine();
+
+                switch (_userCommand)
+                {
+                    case "1":
+                        _deck.Show();
+                        break;
+
+                    case "2":
+                        _card = _deck.GiveCard();
+                        _player.TakeCard(_card);                       
+                        break;
+                    case "3":
+                        _player.ShowCards();
+                        break;
+
+                    case "4":
+                        _isPlaying = false;
+                        break;
+
+                    default:
+                        Console.WriteLine("Введена неверная команда!");
+                        Console.WriteLine("Нажмите любую клавишу, чтобы продолжить.");
+                        Console.ReadKey();
+                        break;
+                }
+            }
+        }
+    }
+
+    class Deck
+    {
+        private readonly string[] _suits = { "пика", "черва", "креста", "бубна" };
+        private readonly string[] _values = { "6", "7", "8", "9", "10", "Валет", "Дама", "Король", "Туз" };
+        private List<Card> _cards = new List<Card>();
+
+        public void Create()
+        {
+            for (int i = 0; i < _suits.Length; i++)
+            {
+                for (int j = 0; j < _values.Length; j++)
+                {
+                    Card card = new Card(_suits[i], _values[j]);
+                    _cards.Add(card);
+                }
+            }
+
+            Console.WriteLine("Колода была успешно создана!");
+            Console.WriteLine("Нажмите любую кнопку, чтобы продолжить.");
+            Console.ReadKey();
+            Console.Clear();
+        }
+
+        public void Shuffle()
+        {
+            Random random = new Random();
+
+            for (int i = 0; i < _cards.Count; i++)
+            {
+                int randomIndex = random.Next(_cards.Count);
+                Card temporaryCard = _cards[i];
+                _cards[i] = _cards[randomIndex];
+                _cards[randomIndex] = temporaryCard;
+            }
+        }
+
+        public Card GiveCard()
+        {
+            Random random = new Random();
+
+            if (_cards.Count > 0)
+            {
+                int randomCard = random.Next(_cards.Count);
+                Card cardToGive = _cards[randomCard];
+                _cards.Remove(cardToGive);
+
+                Console.WriteLine("Нажмите любую кнопку, чтобы продолжить");
+                Console.ReadKey();
+                Console.Clear();
+
+                return cardToGive;
+            }
+            else
+            {
+                Console.WriteLine("В колоде нет карт!");
+                Console.WriteLine("Нажмите любую клавишу, чтобы продолжить.");
+                Console.ReadKey();
+                return null;
+            }
+        }
+
+        public void Show()
+        {
+            foreach (Card card in _cards)
+            {
+                Console.WriteLine($"Карта - {card.Value}, {card.Suit}");
+            }
+
+            Console.WriteLine("Все карты в колоде были показаны. Нажмите любую клавишу, чтобы продолжить.");
+            Console.ReadKey();
+            Console.Clear();
+        }
+    }
+
+    class Card
+    {
+        public string Value { get; private set; }
+        public string Suit { get; private set; }
+
+        public Card(string suit, string value)
+        {
+            Suit = suit;
+            Value = value;
+        }
+    }
+
+    class Player
+    {
+        private static int _ids;
+        private List<Card> _cardSet = new List<Card>();
+
+        public int Id { get; private set; }
+        public string Name { get; private set; }
+
+        public Player(string name)
+        {
+            Id = _ids++;
+            Name = name;
+        }
+        public void TakeCard(Card card)
+        {
+            _cardSet.Add(card);
+        }
+
+        public void ShowCards()
+        {
+            Console.WriteLine($"Игрок {Name} вытянул такие карты: ");
+
+            foreach (Card card in _cardSet)
+            {
+                Console.WriteLine($"{card.Value}, {card.Suit}");
+            }
+
+            Console.WriteLine("Нажмите любую клавишу, чтобы продолжить.");
+            Console.ReadKey();
+            Console.Clear();
+        }
+    }
